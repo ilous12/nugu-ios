@@ -28,7 +28,6 @@ public class MicInputProvider {
     
     public var audioFormat: AVAudioFormat?
     private let audioBus = 0
-    private let audioEngine = AVAudioEngine()
     private let audioQueue = DispatchQueue(label: "romain_mic_input_audio_queue")
     
     public init(inputFormat: AVAudioFormat? = nil) {
@@ -44,6 +43,10 @@ public class MicInputProvider {
     }
     
     public func start(tapBlock: @escaping AVAudioNodeTapBlock) throws {
+        if let a = audioEngine {
+        } else {
+            audioEngine = AVAudioEngine()
+        }
         guard audioEngine.isRunning == false else {
             log.warning("audio engine is already running")
             return
@@ -59,13 +62,15 @@ public class MicInputProvider {
     
     public func stop() {
         log.debug("try to stop")
-        
-        if let error = NCObjcExceptionCatcher.objcTry({
-            audioEngine.inputNode.removeTap(onBus: audioBus)
-            audioEngine.stop()
-        }) {
-            log.error("stop error: \(error)\n")
+        if let a = audioEngine {
+            if let error = NCObjcExceptionCatcher.objcTry({
+                audioEngine.inputNode.removeTap(onBus: audioBus)
+                audioEngine.stop()
+            }) {
+                log.error("stop error: \(error)\n")
+            }
         }
+        audioEngine = nil
     }
     
     private func beginTappingMicrophone(tapBlock: @escaping AVAudioNodeTapBlock) throws {
