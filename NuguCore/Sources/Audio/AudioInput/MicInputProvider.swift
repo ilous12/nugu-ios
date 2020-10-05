@@ -28,7 +28,7 @@ public class MicInputProvider {
     
     public var audioFormat: AVAudioFormat?
     private let audioBus = 0
-    private let audioEngine = AVAudioEngine()
+    private let audioEngine: AVAudioEngine? = nil
     private let audioQueue = DispatchQueue(label: "romain_mic_input_audio_queue")
     
     public init(inputFormat: AVAudioFormat? = nil) {
