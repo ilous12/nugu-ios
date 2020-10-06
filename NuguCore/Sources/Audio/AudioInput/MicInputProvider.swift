@@ -17,13 +17,16 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //
-
 import Foundation
 import AVFoundation
 
 public class MicInputProvider {
     public var isRunning: Bool {
-        return audioEngine.isRunning
+        if let a = audioEngine {
+            return a.isRunning
+        } else {
+            return false;
+        }
     }
     
     public var audioFormat: AVAudioFormat?
@@ -47,7 +50,7 @@ public class MicInputProvider {
         } else {
             audioEngine = AVAudioEngine()
         }
-        guard audioEngine.isRunning == false else {
+        guard audioEngine!.isRunning == false else {
             log.warning("audio engine is already running")
             return
         }
@@ -64,8 +67,8 @@ public class MicInputProvider {
         log.debug("try to stop")
         if let a = audioEngine {
             if let error = NCObjcExceptionCatcher.objcTry({
-                audioEngine.inputNode.removeTap(onBus: audioBus)
-                audioEngine.stop()
+                a.inputNode.removeTap(onBus: audioBus)
+                a.stop()
             }) {
                 log.error("stop error: \(error)\n")
             }
@@ -81,12 +84,12 @@ public class MicInputProvider {
         if let error = NCObjcExceptionCatcher.objcTry({
             // The audio engine creates a singleton on demand when inputNode is first accessed.
             // So it could raise an ObjC exception
-            inputNode = audioEngine.inputNode
+            inputNode = audioEngine!.inputNode
             inputFormat = inputNode.inputFormat(forBus: audioBus)
         }) {
             log.error("create AVAudioInputNode error: \(error)\n" +
-                "\t\tengine output format: \(audioEngine.inputNode.outputFormat(forBus: audioBus))\n" +
-                "\t\tengine input format: \(audioEngine.inputNode.inputFormat(forBus: audioBus))")
+                "\t\tengine output format: \(audioEngine!.inputNode.outputFormat(forBus: audioBus))\n" +
+                "\t\tengine input format: \(audioEngine!.inputNode.inputFormat(forBus: audioBus))")
             
             throw error
         }
@@ -132,8 +135,8 @@ public class MicInputProvider {
         }) {
             log.error("installTap error: \(error)\n" +
                 "\t\trequested format: \(String(describing: inputFormat))\n" +
-                "\t\tengine output format: \(audioEngine.inputNode.outputFormat(forBus: audioBus))\n" +
-                "\t\tengine input format: \(audioEngine.inputNode.inputFormat(forBus: audioBus))")
+                "\t\tengine output format: \(audioEngine!.inputNode.outputFormat(forBus: audioBus))\n" +
+                "\t\tengine input format: \(audioEngine!.inputNode.inputFormat(forBus: audioBus))")
             log.error("\n\t\t\(AVAudioSession.sharedInstance().category)\n" +
                 "\t\t\(AVAudioSession.sharedInstance().categoryOptions)\n" +
                 "\t\taudio session sampleRate: \(AVAudioSession.sharedInstance().sampleRate)")
@@ -142,9 +145,9 @@ public class MicInputProvider {
         }
         
         // installTap() must be called before prepare() or start() on iOS 11.
-        audioEngine.prepare()
+        audioEngine!.prepare()
         do {
-            try audioEngine.start()
+            try audioEngine!.start()
         } catch {
             log.error(error.localizedDescription)
             throw error
