@@ -29,7 +29,7 @@ public class MicInputProvider {
     public var audioFormat: AVAudioFormat?
     private let audioBus = 0
     private let audioQueue = DispatchQueue(label: "romain_mic_input_audio_queue")
-    
+    private var audioEngine: AVAudioEngine? = nil
     public init(inputFormat: AVAudioFormat? = nil) {
         guard inputFormat != nil else {
             self.audioFormat = AVAudioFormat(commonFormat: MicInputConst.defaultFormat,
